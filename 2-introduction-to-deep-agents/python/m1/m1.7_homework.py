@@ -48,8 +48,8 @@ agent = create_deep_agent(
 #     thread_a = {"configurable": {"thread_id": "my-thread-a"}}
 # ════════════════════════════════════════════════════════════════════════
 
-thread_a = None  # TODO 1: replace with your own thread config
-thread_b = None  # TODO 1: replace with your own thread config
+thread_a = {"configurable": {"thread_id": "my-thread-a"}}
+thread_b = {"configurable": {"thread_id": "my-thread-b"}}
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -78,7 +78,36 @@ thread_b = None  # TODO 1: replace with your own thread config
 
 def run_scenario():
     """TODO 2: run the multi-turn, multi-thread scenario described above."""
-    raise NotImplementedError("TODO 2: see the comment block above")
+    
+    result = agent.invoke(
+      {"messages": [{"role": "user", "content": "Remember that I am currently pursuing the LangChain Certified Agent Engineer Certification."}]},
+      config=thread_a,
+    )
+    print("\nAgent 1: Thread A, turn 1 - \n")
+    print(result["messages"][-1].content)
 
+    result = agent.invoke(
+      {"messages": [{"role": "user", "content": "What is the most recent certification I am pursuing?"}]},
+      config=thread_a,
+    )
+    print("\nAgent 1: Thread A, turn 2 - \n")
+    print(result["messages"][-1].content)
+
+    result = agent.invoke(
+      {"messages": [{"role": "user", "content": "What is the most recent certification I am pursuing?"}]},
+      config=thread_b,
+    )
+    print("\nAgent 1: Thread B, turn 1 - \n")
+    print(result["messages"][-1].content)
+
+    fresh_agent = create_deep_agent(model=model, checkpointer=MemorySaver())
+
+    result = fresh_agent.invoke(
+      {"messages": [{"role": "user", "content": "Tell me what is the most recent certification I am pursuing? If you don't know, tell me why don't you"}]},
+      config=thread_a,
+    )
+
+    print("\nAgent 2: Thread A, turn 1 - \n")
+    print(result["messages"][-1].content)
 
 run_scenario()

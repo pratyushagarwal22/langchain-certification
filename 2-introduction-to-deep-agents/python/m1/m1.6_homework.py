@@ -59,9 +59,21 @@ from models import model
 # ════════════════════════════════════════════════════════════════════════
 
 async def build_tools():
-    """TODO 1: build a MultiServerMCPClient, fetch its tools, filter them,
-    and return the filtered list."""
-    raise NotImplementedError("TODO 1: see the comment block above")
+    client = MultiServerMCPClient({
+      "deepwiki" : {
+        "transport" : "http",
+        "url" : "https://mcp.deepwiki.com/mcp"
+      }
+    })
+
+    tools = await client.get_tools()
+    print(f"\ndeepwiki: {len(tools)} tool(s)")
+    for t in tools:
+      print(f"  {t.name}")
+      print(f"  {t.description[:120]}...\n")
+    
+    return tools
+
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -69,7 +81,7 @@ async def build_tools():
 # not Lab 1's "what is MCP..." question.
 # ════════════════════════════════════════════════════════════════════════
 
-QUESTION = "TODO 2: replace with a question that puts your chosen tool(s) to work."
+QUESTION = "What can you tell me about the repo public-apis/public-apis?"
 
 
 async def main():

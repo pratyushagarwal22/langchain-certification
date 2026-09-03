@@ -55,10 +55,9 @@ from models import model
 # ════════════════════════════════════════════════════════════════════════
 
 @tool
-def your_action_tool(argument: str) -> str:
-    """TODO 1: replace this docstring and body with your own action tool."""
-    raise NotImplementedError("TODO 1: see the comment block above")
-
+def book_meeting_room(room_number: str, date: str, time: str) -> str:
+    """Provide the details of the meeting room to be booked. Before booking, give the user the option to approve, edit, or reject the details."""
+    return f"Meeting room {room_number} booked for {date} at {time}."
 
 # ════════════════════════════════════════════════════════════════════════
 # TODO 2: Configure interrupt_on for your tool, and write a system prompt
@@ -74,18 +73,13 @@ def your_action_tool(argument: str) -> str:
 #     want to call it.
 # ════════════════════════════════════════════════════════════════════════
 
-SYSTEM_PROMPT = "TODO 2: replace this with your own system prompt."
-INITIAL_REQUEST = "TODO 2: replace this with a request that would trigger your tool."
-INTERRUPT_ON = {"your_action_tool": True}  # TODO 2: replace with your own allowed_decisions config
-
-if "TODO 1" in your_action_tool.description:
-    raise NotImplementedError("TODO 1: see the comment block above")
-if "TODO 2" in SYSTEM_PROMPT or "TODO 2" in INITIAL_REQUEST:
-    raise NotImplementedError("TODO 2: see the comment block above")
+SYSTEM_PROMPT = "You are a meeting room booking assistant. You are responsible for booking meeting rooms for the users. Before booking, give the user the option to approve, edit, or reject the details."
+INITIAL_REQUEST = "Book the meeting room 404 for 4th September at 10:00 AM."
+INTERRUPT_ON = {"book_meeting_room": {"allowed_decisions": ["approve", "edit", "reject"]}}  
 
 agent = create_deep_agent(
     model=model,
-    tools=[your_action_tool],
+    tools=[book_meeting_room],
     system_prompt=SYSTEM_PROMPT,
     interrupt_on=INTERRUPT_ON,
     checkpointer=MemorySaver(),
@@ -127,6 +121,6 @@ while result.interrupts:
     result = agent.invoke(Command(resume={"decisions": decisions}), config=config, version="v2")
 
 for msg in result.value["messages"]:
-    if hasattr(msg, "name") and msg.name == "your_action_tool":
+    if hasattr(msg, "name") and msg.name == "book_meeting_room":
         print(msg.content)
         break

@@ -52,7 +52,10 @@ from models import model
 #   )
 # ════════════════════════════════════════════════════════════════════════
 
-SYSTEM_PROMPT = "TODO 1: replace this with your own domain-scoping system prompt."
+SYSTEM_PROMPT = (
+  # Domain Specific System Prompt
+  "You only answer questions about elephants. If asked about anything else, you will refuse to answer and redirect the user to the elephant domain. Ending with a joke about elephants, and a question about the user's favourite animal."
+)
 
 
 agent = create_deep_agent(
@@ -71,7 +74,14 @@ agent = create_deep_agent(
 def run_test_prompts():
     """TODO 2: invoke `agent` with one in-domain prompt and one
     out-of-domain prompt, and print each response."""
-    raise NotImplementedError("TODO 2: see the comment block above")
+    
+    result = agent.invoke({"messages": [{"role" : "user", "content" : "Which elephant is the largest in the world?"}]})
+
+    print(result["messages"][-1].content)
+
+    result = agent.invoke({"messages": [{"role": "user", "content": "What is the capital of France?"}]})
+
+    print(result["messages"][-1].content)
 
 
 run_test_prompts()

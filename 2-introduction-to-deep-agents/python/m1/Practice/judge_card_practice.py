@@ -60,6 +60,11 @@ RUN
 from __future__ import annotations
 
 from langchain_core.tools import tool
+from langchain_mcp_adapters.client import MultiServerMCPClient
+
+from deepagents import create_deep_agent
+import asyncio
+
 
 from judge_card_helpers import (
     OUTPUT_DIR,
@@ -129,10 +134,15 @@ trophies.""" + TOOL_SEQUENCE,
     # TODO 1: name and write your own persona here. Keep the same job
     # (score three traits, match a product, hand off a verdict)
     # Give it a name and a voice all your own.
-    "your_persona": """TODO 1: replace this with your own judge persona. Give
-yourself a name and a distinct voice (see the three judges above for the
-shape), then call yourself that name wherever judge_name is expected
-below.""" + TOOL_SEQUENCE,
+    "mom-mode": """You are Mummy, a personality quiz judge speaking in an indian mom like voice.
+    You are a very strict and traditional Indian mom.
+    You are very proud of your children and you are very critical of them.
+    You are almost amazed that your child is able to answer the quiz questions.
+    You use the word "beta" a lot. 
+    Talk down to the user like they're your mildly disaapointing child, who needs to be spoon-fed the answers.
+    Treat every question you were asked as an obviously stupid one you're too tired to be surprised by anymore.
+    You are allergic to participation trophies, and expect the user to be perfect.
+    """ + TOOL_SEQUENCE,
 }
 
 
@@ -176,7 +186,11 @@ def score_and_match(answers: list[tuple[int, int, int]]) -> dict:
     # 3. Set product to PRODUCT_MATCHES[direction.lower()], e.g.
     #    PRODUCT_MATCHES["chaotic"] -> "Fleet".
     # 4. Return {"trait_scores": scores, "product": product}.
-    raise NotImplementedError("TODO 2: see the comments above")
+    axis_index = max(range(3), key=lambda i: abs(scores[i] - 50))
+    left, right = TRAIT_AXES[axis_index]
+    direction = right if scores[axis_index] >= 50 else left
+    product = PRODUCT_MATCHES[direction.lower()]
+    return {"trait_scores": scores, "product": product}
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -211,13 +225,40 @@ def score_and_match(answers: list[tuple[int, int, int]]) -> dict:
 # if the docs server is briefly unreachable, not because of any auth step.
 PLACEHOLDER_FACT = "no real data connected yet: swap this for a real MCP-sourced fact"
 
+async def _fetch_product_fact_async(product: str) -> str:
+  try:
+    client = MultiServerMCPClient({
+      "docs-langchain" : {
+        "transport": "http",
+        "url": "https://docs.langchain.com/mcp"
+      }
+    })
+    tools = await client.get_tools()
+    tools = [t for t in tools if t.name == "search_docs_by_lang_chain"]
+    fact_agent = create_deep_agent(model = model, tools = tools)
+    result = await fact_agent.ainvoke({
+      "messages" : [{
+        "role": "user", "content": (
+          f"Use the LangChain docs MCP tool to describe the LangChain product "
+          f"'{product}' in ONE short factual sentence (under 25 words). No "
+          f"preamble, just the sentence. Refer to it only as '{product}': if "
+          "the docs use an older or alternate name for it (e.g. 'Agent "
+          f"Builder' for Fleet), write '{product}' instead, not that name."
+        )
+      }]
+    })
+    return result["messages"][-1].content.strip()
+  except Exception as exc:
+    print(f"[product fact] falling back to placeholder ({exc})")
+    return PLACEHOLDER_FACT
+
 
 @tool
 def fetch_product_fact(product: str) -> str:
     """Look up one grounded, factual sentence about the LangChain product
     you were matched with. Call this right after score_and_match, passing
     in the product name it returned."""
-    raise NotImplementedError("TODO 3: see the comment block above")
+    return asyncio.run(_fetch_product_fact_async(product))
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -228,7 +269,7 @@ def fetch_product_fact(product: str) -> str:
 # You'll get multiple cards to compare, judging the same quiz answers.
 # ════════════════════════════════════════════════════════════════════════
 
-JUDGES_TO_RUN = ["your_persona"]  # TODO 4: e.g. ["your_persona", "ancient_mummy"]
+JUDGES_TO_RUN = ["mom-mode"]  # TODO 4: e.g. ["your_persona", "ancient_mummy"]
 
 
 def build_user_prompt(answers: list[tuple[int, int, int]]) -> str:
@@ -250,7 +291,8 @@ if __name__ == "__main__":
             system_prompt=JUDGE_PERSONAS[judge_name],
             user_prompt=user_prompt,
             tools=[score_and_match, fetch_product_fact, render_card, post_card],
-            model=model,  # TODO 6 (Lesson 1.3, Models, optional): from models import strong_model and try it here
-            interrupt_on=None,  # TODO 5 (Lesson 1.8, Human-in-the-Loop: Decision Types): gate post_card, e.g. {"post_card": True}
+            model=model, 
+            interrupt_on={"post_card": True},
+            thread_prefix="m1-judge-card-practice-homework"
         )
     print(f"\nCards saved to {OUTPUT_DIR}/")
