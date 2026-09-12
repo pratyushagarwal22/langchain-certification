@@ -77,7 +77,11 @@ def query_chinook(sql: str) -> str:
 # single-query question is a perfectly fine answer too.
 # ════════════════════════════════════════════════════════════════════════
 
-TASK = None  # TODO 1: replace with your own question
+TASK = (
+    "Which country's customers generated the least total revenue, and what "
+    "is the single worst-selling track (by revenue) among customers from "
+    "that country? Each answer depends on the previous one."    
+)
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -91,7 +95,49 @@ TASK = None  # TODO 1: replace with your own question
 # ════════════════════════════════════════════════════════════════════════
 
 def eval_answer(answer_text: str) -> None:
-    raise NotImplementedError("TODO 2: see the comment block above")
+    """Independently compute the expected worst country and worst track, then
+    check whether both show up in the agent's answer."""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    try:
+        bottom_country = conn.execute(
+            """
+            SELECT Customer.Country, SUM(InvoiceLine.UnitPrice * InvoiceLine.Quantity) AS rev
+            FROM InvoiceLine
+            JOIN Invoice USING(InvoiceId)
+            JOIN Customer USING(CustomerId)
+            GROUP BY Customer.Country
+            ORDER BY rev ASC
+            LIMIT 1
+            """
+        ).fetchone()
+        bottom_track = conn.execute(
+            """
+            SELECT Track.Name, SUM(InvoiceLine.UnitPrice * InvoiceLine.Quantity) AS rev
+            FROM InvoiceLine
+            JOIN Invoice USING(InvoiceId)
+            JOIN Customer USING(CustomerId)
+            JOIN Track USING(TrackId)
+            WHERE Customer.Country = ?
+            GROUP BY Track.TrackId
+            ORDER BY rev ASC
+            LIMIT 1
+            """,
+            (bottom_country["Country"],),
+        ).fetchone()
+    finally:
+        conn.close()
+
+    print("\n--- Eval check ---")
+    print(f"Expected bottom country: {bottom_country['Country']}")
+    print(f"Expected bottom track: {bottom_track['Name']}")
+
+    checks = {
+        "mentions expected country": bottom_country["Country"].lower() in answer_text.lower(),
+        "mentions expected track": bottom_track["Name"].lower() in answer_text.lower(),
+    }
+    for label, passed in checks.items():
+        print(f"  [{'PASS' if passed else 'FAIL'}] {label}")
 
 
 if TASK is None:

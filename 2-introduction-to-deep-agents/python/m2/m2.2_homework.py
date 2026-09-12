@@ -52,7 +52,16 @@ from models import model
 #   backend = FilesystemBackend(root_dir=str(my_dir), virtual_mode=True)
 # ════════════════════════════════════════════════════════════════════════
 
-backend = None  # TODO 1: replace with a StateBackend, FilesystemBackend, or CompositeBackend
+my_dir = Path(__file__).parent / "reference"
+my_dir.mkdir(exist_ok=True)
+(my_dir / "notes.md").write_text("""
+- Complete Foundation: Introduction to LangChain - Python Course
+- Complete Foundation: Introduction to Deep Agents Course
+- Complete Foundation: Building Reliable Agents Course
+- Complete Foundation: Monitoring Production Agents Course
+- Complete Foundation: Introduction to LangSmith Deployment Course
+""")
+backend = FilesystemBackend(root_dir=str(my_dir), virtual_mode=True)
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -64,14 +73,17 @@ backend = None  # TODO 1: replace with a StateBackend, FilesystemBackend, or Com
 # empty and skipping permissions entirely is also a valid choice.
 # ════════════════════════════════════════════════════════════════════════
 
-TASK = None  # TODO 2: replace with your own task message
-permissions: list[FilesystemPermission] = []  # TODO 2 (optional): add rules here
-
-if backend is None:
-    raise NotImplementedError("TODO 1: see the comment block above")
-if TASK is None:
-    raise NotImplementedError("TODO 2: see the comment block above")
-
+TASK = """
+Read /notes.md, then add a new note to the file saying "Completed Foundation: Introduction to LangChain - Python Course" and add a new entry
+saying "Once all prerequisites are completed, give the LangChain Certified Agent Engineer exam."
+"""
+permissions= [
+  FilesystemPermission(
+    operations=["write"],
+    paths=[str(my_dir)+"/**"],
+    mode="allow",
+  ),
+]
 agent = create_deep_agent(
     model=model,
     backend=backend,

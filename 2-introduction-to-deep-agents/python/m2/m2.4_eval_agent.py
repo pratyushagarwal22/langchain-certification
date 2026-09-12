@@ -13,7 +13,7 @@ result = agent.invoke(
         "messages": [
             {
                 "role": "user",
-                "content": "Use the eval tool to compute and return the first 15 Fibonacci numbers.",
+                "content": "Use the eval tool to compute and return the squares of the numbers 1 to 20 inclusive.",
             }
         ]
     }
