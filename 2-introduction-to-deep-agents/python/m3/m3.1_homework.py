@@ -61,8 +61,18 @@ from models import model
 # ════════════════════════════════════════════════════════════════════════
 
 def build_turns() -> list[str]:
-    """TODO 1: return your own list of user turns (at least 8)."""
-    raise NotImplementedError("TODO 1: see the comment block above")
+    return [
+        "I'm planning on completing the LangChain Certified Agent Certification course by the end September 2026.",
+        "I'm currently working on completing module 3 of the second course.",
+        "I have recently graduated from the Unviersity of Illinois at Urbana-Champaign.",
+        "My name is Pratyush Agarwal, I am a software engineer with a strong background in Data Engineering and AI. I am currently working at ADM as a Data Engineering Intern.",
+        "I need a project idea so that I can implement what I have learned so far with the help of this certification.",
+        "Do you know what certification am I talking about?",
+        "I am targeting getting a job by the end of this year.",
+        "Quick recap: what is my name, and which module am I currently completing for the certification?",
+        "Quick recap: Where do I currently work?",
+        "Quick recap: Which college did I graduate from?"
+    ]
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -75,7 +85,7 @@ def build_turns() -> list[str]:
 # you wrote and how long they are.
 # ════════════════════════════════════════════════════════════════════════
 
-MAX_INPUT_TOKENS = None  # TODO 2: replace None with your chosen integer threshold
+MAX_INPUT_TOKENS = 1000  
 
 model.profile = {**model.profile, "max_input_tokens": MAX_INPUT_TOKENS}
 

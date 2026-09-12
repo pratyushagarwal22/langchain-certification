@@ -38,7 +38,7 @@ from models import model
 
 # This name becomes the skill's directory name. It must exactly match the
 # `name:` field you write in the frontmatter inside build_skill_md() below.
-SKILL_NAME = "your-skill-name"
+SKILL_NAME = "workout-planner"
 REFERENCE_PATH = f"/skills/{SKILL_NAME}/reference.md"
 
 
@@ -69,8 +69,41 @@ REFERENCE_PATH = f"/skills/{SKILL_NAME}/reference.md"
 # ════════════════════════════════════════════════════════════════════════
 
 def build_skill_md() -> str:
-    """TODO 1: return your own SKILL.md content as a string."""
-    raise NotImplementedError("TODO 1: see the comment block above")
+    return """---
+name: workout-planner
+description: Use when the user wants a structured workout plan for a specific day or goal.
+---
+
+    # Workout Planner
+
+    Build a single-session workout plan tailored to the user's goal and available time.
+
+    **Step 1: Goal**: Ask what the user is training for today (strength, hypertrophy,
+    endurance, or mobility) if it isn't already clear from their message.
+
+    **Step 2: Constraints**: Confirm how much time they have and what equipment is
+    available (bodyweight only, dumbbells, a full gym).
+
+    **Step 3: Look up the numbers**: Before writing sets and reps, read `reference.md`
+    in this skill's directory for the exact sets/reps/rest table for the stated
+    goal. Do not guess these numbers; they vary by goal and this skill's rubric is
+    specific about them.
+
+    **Step 4: Warm-up**: Always include a 5-minute warm-up appropriate to the goal.
+
+    **Step 5: Main block**: Write 4-6 exercises using the sets/reps/rest from
+    reference.md that fit the stated goal, time, and equipment.
+
+    **Step 6: Cool-down**: End with 2-3 minutes of stretching relevant to the muscles
+    worked.
+
+    ## Output
+
+    Present the plan as a numbered list: warm-up, main block (with sets/reps/rest
+    per reference.md), then cool-down. Keep the whole plan realistic for the time
+    the user gave you.
+    
+    """
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -83,8 +116,18 @@ def build_skill_md() -> str:
 # ════════════════════════════════════════════════════════════════════════
 
 def build_reference_md() -> str:
-    """TODO 2: return the content of your skill's reference.md."""
-    raise NotImplementedError("TODO 2: see the comment block above")
+    return """# Sets / Reps / Rest Rubric
+
+    Use the row matching the user's stated goal. Do not deviate from these
+    numbers; they're calibrated for a single 20-30 minute session.
+
+    | Goal        | Sets | Reps      | Rest between sets |
+    |-------------|------|-----------|--------------------|
+    | Strength    | 4-5  | 4-6       | 90-120 seconds     |
+    | Hypertrophy | 3-4  | 8-12      | 60-90 seconds      |
+    | Endurance   | 2-3  | 15-20     | 30-45 seconds      |
+    | Mobility    | 2-3  | 30-60s hold (not reps) | 15-30 seconds |
+    """
 
 
 # Write the skill to a scratch directory so it's discoverable through a
@@ -108,8 +151,9 @@ print(f"Skill files written to: {_skill_dir}")
 # closely enough that the agent activates it.
 # ════════════════════════════════════════════════════════════════════════
 
-SYSTEM_PROMPT = """TODO 3: replace this with your own system prompt."""
-USER_QUESTION = "TODO 3: replace this with a question that should trigger your skill."
+SYSTEM_PROMPT = """You are Coach Goggins, an ex navy seal, you can be very mean and harsh, but want the best for your clients. 
+Keep your tone encouraging and practical. But be mean and harsh when necessary."""
+USER_QUESTION = "I have 45 minutes and just a pair of dumbbells. Give me a workout focused on strength."
 
 agent = create_deep_agent(
     model=model,

@@ -73,13 +73,41 @@ def memory_namespace(runtime):
 # ════════════════════════════════════════════════════════════════════════
 
 def build_seed_memory_a() -> str:
-    """TODO 1: return CONTEXT_A's starting memory content."""
-    raise NotImplementedError("TODO 1: see the comment block above")
+    return """# Walnut Choco Fudge Recipe
+
+## Ingredients:
+
+- 125 g butter
+- 100 g chopped walnuts
+- 50 g cocoa powder
+- 1 container of condensed milk
+
+## Instructions:
+
+- Melt the butter in the saucepan over medium heat.
+- Add the condensed milk to the saucepan and stir until well mixed.
+- Add the walnuts and cocoa powder to the saucepan and stir until well mixed.
+- Adjust consistency by adding more cocoa powder as needed.
+- Once the mixture is well mixed and has reached the desired consistency, remove from heat and let it cool.
+    """
 
 
 def build_seed_memory_b() -> str:
-    """TODO 1: return CONTEXT_B's starting memory content."""
-    raise NotImplementedError("TODO 1: see the comment block above")
+    return """# Breaking into Software Development
+
+## Steps:
+
+- Completing the LangChain Certified Agent Engineer Certification.
+- Reviewing backend concepts from roadmap.sh
+- Building multiple small projects each focusing on a different aspect of the backend.
+- Talk about the learnings from the projects.
+
+## Current Status:
+
+- On track to complete 2nd course of certification prerequisites. 
+- Certificatione exam scheduled for the end of September 2026.
+- Working on project mnemo.
+    """
 
 
 store.put(namespace_from_context(CONTEXT_A), store_memory_path, create_file_data(build_seed_memory_a()))
@@ -111,9 +139,9 @@ agent = create_deep_agent(
 #   reflect B's own seed, not A's.
 # ════════════════════════════════════════════════════════════════════════
 
-RECALL_QUESTION = "TODO 2: replace with a question answerable from build_seed_memory_a() alone."
-REMEMBER_MESSAGE = "TODO 2: replace with a 'remember this' message introducing a new, distinctive fact under context A."
-LEAK_CHECK_QUESTION = "TODO 2: replace with the SAME question as RECALL_QUESTION."
+RECALL_QUESTION = "What are the ingredients needed for the walnut choco fudge recipe?"
+REMEMBER_MESSAGE = "Remember: The recipe is for a walnut choco fudge, but you can very easily make it with other nuts as well. Update your memory."
+LEAK_CHECK_QUESTION = "What are the ingredients needed for the walnut choco fudge recipe?"
 
 # 1. Context A recalls from its own seed.
 result_a1 = agent.invoke({"messages": [{"role": "user", "content": RECALL_QUESTION}]}, context=CONTEXT_A)
